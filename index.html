@@ -842,6 +842,8 @@
           </select>
         </div>
 
+        <button id="logoutHeaderBtn" type="button" title="Keluar" aria-label="Keluar" class="movio-icon-circle-btn d-none d-sm-inline-flex" style="color:#f43f5e;"><i class="bi bi-box-arrow-right fs-5"></i></button>
+
         <button id="premiumBtn" type="button" title="Upgrade ke MovioTube Premium" class="movio-nav-pill-btn shrink-0" style="border-color: rgba(245,158,11,.45); color:#f59e0b;">
           <i class="bi bi-gem"></i>
           <span id="premiumBtnText">Premium</span>
@@ -1007,6 +1009,16 @@
         </div>
 
         <div class="px-3 pt-4 pb-2 text-[11px] text-neutral-400 dark:text-[#6b7280] space-y-1 sidebar-footer">
+          <div id="userCard" class="d-flex align-items-center gap-2 p-2 mb-2 rounded-3" style="background: var(--movio-chip); border: 1px solid var(--movio-border);">
+            <span id="userAvatar" class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shrink-0" style="width:34px;height:34px;background:#e11d48;font-size:.8rem;">?</span>
+            <div class="min-w-0 flex-grow-1">
+              <div id="userNameLabel" class="text-truncate fw-semibold text-sm" style="color: var(--movio-text);">Tamu</div>
+              <div class="text-[10px]" style="color: var(--movio-muted);">Sedang masuk</div>
+            </div>
+            <button id="logoutBtn" type="button" title="Keluar" aria-label="Keluar" class="btn btn-sm border-0 d-flex align-items-center gap-1 px-2 py-1 rounded-pill text-xs fw-semibold" style="background: rgba(225,29,72,.15); color:#f43f5e;">
+              <i class="bi bi-box-arrow-right"></i><span>Keluar</span>
+            </button>
+          </div>
           <div class="d-flex align-items-center gap-1.5 fw-semibold text-neutral-600 dark:text-[#9ca3af]">
             <i class="bi bi-shield-fill-check text-emerald-500"></i>
             <span>MovioTube Pro Ad-Free</span>
@@ -4641,6 +4653,7 @@
 
     window.MovioPremium = {
       isPremium: isPremium,
+      deactivate: function () { setPremium(null); },
       open: open,
       require: function (featureName) {
         if (isPremium()) return true;
@@ -4720,7 +4733,29 @@
     function closeGate() { $('nameGate').classList.add('hidden'); }
     function showErr(m) { var e = $('nameGateError'); e.textContent = m; e.classList.remove('hidden'); }
 
+    function renderUser() {
+      var n = lsGet(NAME_KEY) || 'Tamu';
+      var lbl = $('userNameLabel'); if (lbl) lbl.textContent = n;
+      var av = $('userAvatar');
+      if (av) av.textContent = n.split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || '?';
+    }
+    function logout() {
+      if (!window.confirm('Keluar dari MovioTube? Status Premium di perangkat ini juga akan dinonaktifkan.')) return;
+      lsDel(NAME_KEY);
+      if (window.MovioPremium && window.MovioPremium.deactivate) window.MovioPremium.deactivate();
+      var sb = $('appSidebar'), bd = $('sidebarBackdrop');
+      if (sb) sb.classList.remove('mobile-open');
+      if (bd) bd.classList.add('hidden');
+      $('nameGateInput').value = '';
+      $('nameGateError').classList.add('hidden');
+      renderUser();
+      openGate();
+    }
+    $('logoutBtn').addEventListener('click', logout);
+    $('logoutHeaderBtn').addEventListener('click', logout);
+
     var saved = lsGet(NAME_KEY);
+    renderUser();
     if (saved) { closeGate(); flushQueue(); } else { openGate(); }
 
     $('nameGateForm').addEventListener('submit', function (e) {
@@ -4730,11 +4765,12 @@
       if (!/^[\p{L}][\p{L}\s.'’-]{2,79}$/u.test(name)) return showErr('Gunakan huruf saja (boleh spasi, titik, atau tanda hubung).');
       $('nameGateError').classList.add('hidden');
       lsSet(NAME_KEY, name);
+      renderUser();
       submitName(name);
       closeGate();
     });
 
-    window.MovioUser = { name: function () { return lsGet(NAME_KEY); } };
+    window.MovioUser = { name: function () { return lsGet(NAME_KEY); }, logout: logout };
   })();
   </script>
 </body>

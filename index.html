@@ -777,6 +777,21 @@
       .movio-sort-box { display: flex !important; border-left: 0; padding-left: 0; justify-content: space-between; }
       .movio-sort-box .movio-pill-select { flex: 1 1 auto; min-width: 0; max-width: 220px; font-size: 16px !important; }
     }
+
+    /* PREMIUM */
+    #premiumBtn.is-premium { background: linear-gradient(135deg,#f59e0b,#e11d48); color:#fff !important; border-color: transparent !important; }
+    @keyframes premShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }
+    .prem-shake { animation: premShake .38s ease; }
+    @media (max-width: 639.98px) { #premiumBtn { width: 36px; padding: 0; justify-content: center; } #premiumBtnText { display: none; } }
+
+    /* GERBANG NAMA */
+    #nameGate { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem;
+      background: radial-gradient(circle at 20% 15%, rgba(225,29,72,.28), transparent 55%), radial-gradient(circle at 85% 85%, rgba(245,158,11,.18), transparent 50%), var(--movio-bg); overflow-y: auto; }
+    #nameGateCard { width: 100%; max-width: 420px; background: var(--movio-surface); border: 1px solid var(--movio-border); border-radius: 1.25rem; padding: 1.75rem 1.5rem; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    #nameGateInput { width: 100%; height: 46px; border-radius: .85rem; border: 1px solid var(--movio-border); background: var(--movio-bg); color: var(--movio-text); padding: 0 1rem; font-size: 16px; outline: none; }
+    #nameGateInput:focus { border-color: var(--movio-accent); box-shadow: 0 0 0 3px rgba(225,29,72,.2); }
+    #nameGateBtn { width: 100%; height: 46px; border: 0; border-radius: 9999px; background: var(--movio-accent); color: #fff; font-weight: 700; font-size: .95rem; margin-top: .9rem; }
+    #nameGateBtn:disabled { opacity: .6; }
   </style>
 </head>
 <body class="selection:bg-rose-600 selection:text-white">
@@ -826,6 +841,11 @@
             <option value="GB">Inggris (GB)</option>
           </select>
         </div>
+
+        <button id="premiumBtn" type="button" title="Upgrade ke MovioTube Premium" class="movio-nav-pill-btn shrink-0" style="border-color: rgba(245,158,11,.45); color:#f59e0b;">
+          <i class="bi bi-gem"></i>
+          <span id="premiumBtnText">Premium</span>
+        </button>
 
         <button
           id="apiModalBtn"
@@ -1680,6 +1700,69 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+
+
+  <!-- GERBANG NAMA LENGKAP -->
+  <div id="nameGate" role="dialog" aria-modal="true" aria-labelledby="nameGateTitle">
+    <div id="nameGateCard">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="w-8 h-7 rounded-3 bg-[#e11d48] d-flex align-items-center justify-content-center"><i class="bi bi-play-fill text-white fs-5"></i></div>
+        <span class="fw-bold fs-5" style="letter-spacing:-.03em;">MovioTube</span>
+      </div>
+      <h1 id="nameGateTitle" class="fs-5 fw-bold mb-1">Selamat datang 👋</h1>
+      <p class="text-sm mb-3" style="color: var(--movio-muted);">Masukkan nama lengkap kamu untuk mulai menonton.</p>
+      <form id="nameGateForm" autocomplete="off" novalidate>
+        <label for="nameGateInput" class="text-xs fw-bold text-uppercase" style="color: var(--movio-muted); letter-spacing:.06em;">Nama Lengkap</label>
+        <input id="nameGateInput" type="text" name="fullname" autocomplete="name" placeholder="Contoh: Rizky Pratama" maxlength="80" class="mt-1" />
+        <p id="nameGateError" class="hidden text-xs fw-medium mt-2 mb-0 text-rose-500"></p>
+        <button id="nameGateBtn" type="submit">Masuk ke MovioTube</button>
+      </form>
+      <p class="text-xs mt-3 mb-0" style="color: var(--movio-muted);"><i class="bi bi-info-circle me-1"></i>Dengan melanjutkan, nama lengkap kamu akan dikirim ke admin MovioTube.</p>
+    </div>
+  </div>
+
+  <!-- PREMIUM MODAL -->
+  <div id="premiumModalBackdrop" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm d-flex align-items-center justify-content-center p-4" style="z-index: 1065;">
+    <div id="premiumModalCard" class="w-full max-w-md rounded-4 bg-white dark:bg-[#151821] border border-neutral-200 dark:border-[#262a36] shadow-2xl overflow-hidden" style="max-height: 92dvh; overflow-y: auto;">
+      <div class="px-5 py-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg,#f59e0b,#e11d48);">
+        <div class="d-flex align-items-center gap-2 text-white">
+          <i class="bi bi-gem fs-5"></i>
+          <h2 class="text-base fw-bold m-0">MovioTube Premium</h2>
+        </div>
+        <button id="premiumCloseBtn" type="button" aria-label="Tutup" class="w-8 h-8 rounded-circle d-flex align-items-center justify-content-center border-0 bg-white/20 text-white"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="p-5">
+        <p id="premiumReason" class="hidden text-xs fw-semibold text-amber-500 mb-3"></p>
+
+        <ul class="list-unstyled text-sm text-neutral-700 dark:text-[#d1d5db] mb-4" style="display:grid; gap:.5rem;">
+          <li><i class="bi bi-check-circle-fill text-emerald-500 me-2"></i>Resolusi 1440p &amp; 4K (Gratis: 720p &amp; 1080p)</li>
+          <li><i class="bi bi-check-circle-fill text-emerald-500 me-2"></i>Kecepatan putar 2.0x &amp; 0.75x</li>
+          <li><i class="bi bi-check-circle-fill text-emerald-500 me-2"></i>Mode Ambient &amp; Mode Bioskop</li>
+          <li><i class="bi bi-check-circle-fill text-emerald-500 me-2"></i>Lencana Premium emas</li>
+        </ul>
+
+        <!-- Belum premium -->
+        <form id="premiumForm" autocomplete="off">
+          <label for="premiumPassInput" class="block text-xs fw-bold text-uppercase tracking-wider text-neutral-500 dark:text-[#9ca3af] mb-1.5">Sandi Premium</label>
+          <div class="d-flex gap-2">
+            <input id="premiumPassInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Masukkan sandi" class="form-control h-10 px-3.5 rounded-3 bg-neutral-100 dark:bg-[#0b0c10] border border-neutral-300 dark:border-[#262a36] text-neutral-900 dark:text-white" style="font-size:16px;" />
+            <button id="premiumShowBtn" type="button" aria-label="Lihat sandi" class="px-3 rounded-3 border-0 bg-neutral-100 dark:bg-[#222632] text-neutral-700 dark:text-white"><i class="bi bi-eye"></i></button>
+          </div>
+          <p id="premiumError" class="hidden text-xs text-rose-500 fw-medium mt-2 mb-0"></p>
+          <button id="premiumSubmitBtn" type="submit" class="w-100 mt-3 px-4 py-2.5 rounded-pill text-sm fw-semibold text-white border-0" style="background: linear-gradient(135deg,#f59e0b,#e11d48);">Upgrade ke Premium</button>
+        </form>
+
+        <!-- Sudah premium -->
+        <div id="premiumActiveBox" class="hidden text-center">
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill text-sm fw-bold text-white mb-3" style="background: linear-gradient(135deg,#f59e0b,#e11d48);"><i class="bi bi-gem"></i> Premium Aktif</div>
+          <p class="text-xs text-neutral-500 dark:text-[#9ca3af] mb-3">Semua fitur Premium sudah terbuka di perangkat ini.</p>
+          <button id="premiumDeactivateBtn" type="button" class="px-4 py-2 rounded-pill text-xs fw-medium bg-neutral-100 dark:bg-[#222632] hover:bg-rose-500/20 text-neutral-800 dark:text-[#f1f1f1] border-0">Nonaktifkan Premium</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4004,7 +4087,8 @@
         });
 
         el.playerSpeedBtn.addEventListener('click', () => {
-          const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
+          const speeds = window.MovioPremium.isPremium() ? [1.0, 1.25, 1.5, 2.0, 0.75] : [1.0, 1.25, 1.5];
+          if (!window.MovioPremium.isPremium() && state.playbackSpeed === 1.5) { showToast('Kecepatan 2.0x & 0.75x khusus Premium 👑'); }
           const nextIdx = (speeds.indexOf(state.playbackSpeed) + 1) % speeds.length;
           state.playbackSpeed = speeds[nextIdx];
           el.movioHtml5Video.playbackRate = state.playbackSpeed;
@@ -4013,7 +4097,8 @@
         });
 
         el.playerQualityBtn.addEventListener('click', () => {
-          const qualities = ['1080p', '1440p', '2160p 4K', '720p'];
+          const qualities = window.MovioPremium.isPremium() ? ['1080p', '1440p', '2160p 4K', '720p'] : ['1080p', '720p'];
+          if (!window.MovioPremium.isPremium() && state.qualityLabel === '720p') { showToast('Resolusi 1440p & 4K khusus Premium 👑'); }
           const nextIdx = (qualities.indexOf(state.qualityLabel) + 1) % qualities.length;
           state.qualityLabel = qualities[nextIdx];
           el.playerQualityBtn.textContent = state.qualityLabel;
@@ -4049,12 +4134,14 @@
         });
 
         el.ambientToggleBtn.addEventListener('click', () => {
+          if (!window.MovioPremium.require('Mode Ambient')) return;
           state.isAmbient = !state.isAmbient;
           el.ambientGlowLayer.style.opacity = state.isAmbient ? '1' : '0';
           el.ambientToggleBtn.textContent = state.isAmbient ? 'Mode Ambient: Aktif' : 'Mode Ambient: Nonaktif';
         });
 
         el.theaterToggleBtn.addEventListener('click', () => {
+          if (!window.MovioPremium.require('Mode Bioskop')) return;
           state.isTheater = !state.isTheater;
           if (state.isTheater) {
             el.watchPrimaryCol.className = 'lg:col-span-12 min-w-0';
@@ -4464,6 +4551,190 @@
       setTimeout(function () { btn.textContent = 'Bersihkan Cache'; }, 1800);
     });
     label();
+  })();
+  </script>
+
+  <script>
+  /* ===== MOVIOTUBE PREMIUM (sandi) ===== */
+  (function () {
+    var STORE = 'movio_premium_v1';
+    var CODES = ['1v3ngbcuy4v', '24iy7987y0m', '89qpkfis9']; // hash sandi, bukan teks asli
+    function hash(str) {
+      var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+      for (var i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+    }
+    function $(id) { return document.getElementById(id); }
+    var memPremium = false, fails = 0, lockUntil = 0, lockTimer = null;
+
+    function isPremium() {
+      try { var v = localStorage.getItem(STORE); if (v) return CODES.indexOf(v) !== -1; } catch (e) {}
+      return memPremium;
+    }
+    function setPremium(token) {
+      memPremium = !!token;
+      try { token ? localStorage.setItem(STORE, token) : localStorage.removeItem(STORE); } catch (e) {}
+      render();
+    }
+    function render() {
+      var on = isPremium();
+      var b = $('premiumBtn');
+      if (b) { b.classList.toggle('is-premium', on); $('premiumBtnText').textContent = on ? 'PREMIUM' : 'Premium'; b.title = on ? 'Premium aktif' : 'Upgrade ke MovioTube Premium'; }
+      $('premiumForm').classList.toggle('hidden', on);
+      $('premiumActiveBox').classList.toggle('hidden', !on);
+    }
+    function open(reason) {
+      var r = $('premiumReason');
+      if (reason) { r.textContent = reason + ' khusus pengguna Premium 👑'; r.classList.remove('hidden'); } else r.classList.add('hidden');
+      $('premiumError').classList.add('hidden');
+      $('premiumPassInput').value = '';
+      render();
+      $('premiumModalBackdrop').classList.remove('hidden');
+      if (!isPremium()) setTimeout(function () { try { $('premiumPassInput').focus(); } catch (e) {} }, 60);
+    }
+    function close() { $('premiumModalBackdrop').classList.add('hidden'); }
+    function err(msg) {
+      var e = $('premiumError'); e.textContent = msg; e.classList.remove('hidden');
+      var c = $('premiumModalCard'); c.classList.remove('prem-shake'); void c.offsetWidth; c.classList.add('prem-shake');
+    }
+    function tickLock() {
+      var left = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (left <= 0) { clearInterval(lockTimer); $('premiumSubmitBtn').disabled = false; $('premiumError').classList.add('hidden'); fails = 0; return; }
+      err('Terlalu banyak percobaan. Coba lagi dalam ' + left + ' detik.');
+    }
+
+    $('premiumBtn').addEventListener('click', function () { open(); });
+    $('premiumCloseBtn').addEventListener('click', close);
+    $('premiumModalBackdrop').addEventListener('click', function (e) { if (e.target === this) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    $('premiumShowBtn').addEventListener('click', function () {
+      var i = $('premiumPassInput'); var show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      this.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '"></i>';
+    });
+    $('premiumForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (Date.now() < lockUntil) return;
+      var val = $('premiumPassInput').value.trim();
+      if (!val) { err('Masukkan sandi terlebih dahulu.'); return; }
+      var h = hash('mvt|' + val);
+      if (CODES.indexOf(h) !== -1) {
+        fails = 0; setPremium(h);
+        $('premiumPassInput').value = '';
+        $('premiumError').classList.add('hidden');
+      } else {
+        fails++;
+        if (fails >= 5) {
+          lockUntil = Date.now() + 30000;
+          $('premiumSubmitBtn').disabled = true;
+          clearInterval(lockTimer); lockTimer = setInterval(tickLock, 1000); tickLock();
+        } else err('Sandi salah. Sisa percobaan: ' + (5 - fails));
+      }
+    });
+    $('premiumDeactivateBtn').addEventListener('click', function () { setPremium(null); });
+
+    window.MovioPremium = {
+      isPremium: isPremium,
+      open: open,
+      require: function (featureName) {
+        if (isPremium()) return true;
+        open(featureName);
+        return false;
+      }
+    };
+    render();
+  })();
+  </script>
+
+  <script>
+  /* ===== GERBANG NAMA LENGKAP + KIRIM KE EMAIL (EmailJS) =====
+     Isi templateId & publicKey dari dashboard https://dashboard.emailjs.com
+     Variabel template email: {{full_name}}, {{waktu}}, {{perangkat}}, {{halaman}} */
+  (function () {
+    var CONFIG = {
+      serviceId:  'service_liaztnk',
+      templateId: 'ISI_TEMPLATE_ID',   // <-- ganti, contoh: template_abc123
+      publicKey:  'ISI_PUBLIC_KEY',    // <-- ganti, dari Account > General > Public Key
+      toEmail:    'rizkyganteng05081@gmail.com'
+    };
+    var NAME_KEY = 'movio_user_name_v1';
+    var QUEUE_KEY = 'movio_name_queue_v1';
+
+    function $(id) { return document.getElementById(id); }
+    function configured() { return CONFIG.templateId.indexOf('ISI_') !== 0 && CONFIG.publicKey.indexOf('ISI_') !== 0; }
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+    function send(entry) {
+      if (!configured()) return Promise.reject(new Error('EmailJS belum dikonfigurasi'));
+      return fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: CONFIG.serviceId,
+          template_id: CONFIG.templateId,
+          user_id: CONFIG.publicKey,
+          template_params: {
+            to_email: CONFIG.toEmail,
+            full_name: entry.name,
+            waktu: entry.time,
+            perangkat: entry.device,
+            halaman: entry.page
+          }
+        })
+      }).then(function (r) { if (!r.ok) throw new Error('Gagal kirim: ' + r.status); });
+    }
+    function readQueue() { try { return JSON.parse(lsGet(QUEUE_KEY) || '[]'); } catch (e) { return []; } }
+    function flushQueue() {
+      var q = readQueue();
+      if (!q.length || !configured()) return;
+      var next = q[0];
+      send(next).then(function () {
+        var cur = readQueue(); cur.shift(); cur.length ? lsSet(QUEUE_KEY, JSON.stringify(cur)) : lsDel(QUEUE_KEY);
+        flushQueue();
+      }).catch(function () {});
+    }
+    function submitName(name) {
+      var entry = {
+        name: name,
+        time: new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }),
+        device: (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'HP' : 'Laptop/Desktop') + ' • ' + navigator.language,
+        page: location.href.slice(0, 200)
+      };
+      // simpan ke antrean dulu; terhapus otomatis kalau terkirim, dicoba lagi bila gagal
+      var q = readQueue(); q.push(entry); lsSet(QUEUE_KEY, JSON.stringify(q));
+      flushQueue();
+    }
+
+    function openGate() {
+      $('nameGate').classList.remove('hidden');
+      setTimeout(function () { try { $('nameGateInput').focus(); } catch (e) {} }, 80);
+    }
+    function closeGate() { $('nameGate').classList.add('hidden'); }
+    function showErr(m) { var e = $('nameGateError'); e.textContent = m; e.classList.remove('hidden'); }
+
+    var saved = lsGet(NAME_KEY);
+    if (saved) { closeGate(); flushQueue(); } else { openGate(); }
+
+    $('nameGateForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = $('nameGateInput').value.replace(/\s+/g, ' ').trim();
+      if (name.length < 3) return showErr('Nama lengkap minimal 3 karakter.');
+      if (!/^[\p{L}][\p{L}\s.'’-]{2,79}$/u.test(name)) return showErr('Gunakan huruf saja (boleh spasi, titik, atau tanda hubung).');
+      $('nameGateError').classList.add('hidden');
+      lsSet(NAME_KEY, name);
+      submitName(name);
+      closeGate();
+    });
+
+    window.MovioUser = { name: function () { return lsGet(NAME_KEY); } };
   })();
   </script>
 </body>

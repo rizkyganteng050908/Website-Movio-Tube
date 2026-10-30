@@ -2648,14 +2648,17 @@
       // =========================================================================
       // YOUTUBE DATA API V3 FETCHERS
       // =========================================================================
+      let moreCtx = null; // konteks 'Muat Lebih Banyak'
+
       async function fetchFeedVideos() {
+        moreCtx = null;
         renderSkeletons(12);
         renderShortsShelf();
         const catObj = CATEGORIES.find(c => c.id === state.activeCategory) || CATEGORIES[0];
 
         try {
           if (!catObj.query || catObj.categoryId) {
-            let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${encodeURIComponent(state.regionCode)}&maxResults=24&key=${encodeURIComponent(state.apiKey)}`;
+            let url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${encodeURIComponent(state.regionCode)}&maxResults=50&key=${encodeURIComponent(state.apiKey)}`;
             if (catObj.categoryId) {
               url += `&videoCategoryId=${encodeURIComponent(catObj.categoryId)}`;
             }
@@ -2664,6 +2667,7 @@
 
             if (res.ok && Array.isArray(data.items) && data.items.length > 0) {
               state.videos = data.items.map(normalizeVideoItem);
+              moreCtx = data.nextPageToken ? { kind: 'popular', url: url, token: data.nextPageToken } : null;
               updateApiStatusIndicator(true);
               renderVideoGrid();
               return;
@@ -2783,11 +2787,12 @@
           state.searchQuery = cleanQuery;
           updateNavigationHighlights();
         }
+        moreCtx = null;
         renderSkeletons(12);
         renderShortsShelf();
 
         try {
-          const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(cleanQuery)}&key=${encodeURIComponent(state.apiKey)}`;
+          const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(cleanQuery)}&key=${encodeURIComponent(state.apiKey)}`;
           const searchRes = await fetch(searchUrl);
           const searchData = await searchRes.json();
 
@@ -2813,6 +2818,7 @@
             state.videos = searchData.items.map(normalizeVideoItem);
           }
 
+          moreCtx = searchData.nextPageToken ? { kind: 'search', url: searchUrl, token: searchData.nextPageToken } : null;
           updateApiStatusIndicator(true);
           renderVideoGrid();
         } catch (err) {
@@ -2836,7 +2842,49 @@
         return copy;
       }
 
+      async function loadMoreVideos() {
+        if (!moreCtx) return;
+        const btn = document.getElementById('loadMoreBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Memuat...'; }
+        try {
+          const ctx = moreCtx;
+          const res = await fetch(ctx.url + '&pageToken=' + encodeURIComponent(ctx.token));
+          const data = await res.json();
+          if (!res.ok || !Array.isArray(data.items)) throw new Error('gagal');
+          let items = data.items;
+          if (ctx.kind === 'search') {
+            const ids = items.map(i => i.id && i.id.videoId).filter(Boolean);
+            const dRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${encodeURIComponent(ids.join(','))}&key=${encodeURIComponent(state.apiKey)}`);
+            const dData = await dRes.json();
+            if (dRes.ok && Array.isArray(dData.items)) items = dData.items;
+          }
+          const seen = new Set(state.videos.map(v => v.id));
+          items.map(normalizeVideoItem).forEach(v => { if (!seen.has(v.id)) state.videos.push(v); });
+          moreCtx = data.nextPageToken ? { kind: ctx.kind, url: ctx.url, token: data.nextPageToken } : null;
+        } catch (e) {
+          moreCtx = null;
+        }
+        renderVideoGrid();
+      }
+
+      function updateLoadMoreBtn() {
+        let wrap = document.getElementById('loadMoreWrap');
+        if (!wrap) {
+          wrap = document.createElement('div');
+          wrap.id = 'loadMoreWrap';
+          wrap.className = 'text-center px-4 pt-6 pb-2';
+          wrap.innerHTML = '<button id="loadMoreBtn" type="button" class="px-5 py-2.5 rounded-pill text-sm fw-semibold bg-[#e11d48] text-white border-0 hover:opacity-90 transition-opacity">Muat Lebih Banyak</button>';
+          el.videoGrid.insertAdjacentElement('afterend', wrap);
+          wrap.querySelector('button').addEventListener('click', loadMoreVideos);
+        }
+        const show = !!moreCtx && ['home', 'trending', 'search'].includes(state.activeNav);
+        wrap.classList.toggle('hidden', !show);
+        const b = document.getElementById('loadMoreBtn');
+        if (b) { b.disabled = false; b.textContent = 'Muat Lebih Banyak'; }
+      }
+
       function renderVideoGrid() {
+        updateLoadMoreBtn();
         renderShortsShelf();
 
         if (state.activeNav === 'home' || state.activeNav === 'trending') {

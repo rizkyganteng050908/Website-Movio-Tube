@@ -1013,7 +1013,7 @@
             <span id="userAvatar" class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shrink-0" style="width:34px;height:34px;background:#e11d48;font-size:.8rem;">?</span>
             <div class="min-w-0 flex-grow-1">
               <div id="userNameLabel" class="text-truncate fw-semibold text-sm" style="color: var(--movio-text);">Tamu</div>
-              <div class="text-[10px]" style="color: var(--movio-muted);">Sedang masuk</div>
+              <div id="userLoginLabel" class="text-[10px] text-truncate" style="color: var(--movio-muted);">Sedang masuk</div>
             </div>
             <button id="logoutBtn" type="button" title="Keluar" aria-label="Keluar" class="btn btn-sm border-0 d-flex align-items-center gap-1 px-2 py-1 rounded-pill text-xs fw-semibold" style="background: rgba(225,29,72,.15); color:#f43f5e;">
               <i class="bi bi-box-arrow-right"></i><span>Keluar</span>
@@ -4674,10 +4674,12 @@
       serviceId:  'service_liaztnk',
       templateId: 'template_k0q3kn9',
       publicKey:  'ISI_PUBLIC_KEY',    // <-- ganti, dari Account > General > Public Key
-      toEmail:    'rizkyganteng05081@gmail.com'
+      toEmail:    'rizkyganteng050981@gmail.com'
     };
     var NAME_KEY = 'movio_user_name_v1';
     var QUEUE_KEY = 'movio_name_queue_v1';
+    var LOGIN_KEY = 'movio_login_time_v1';
+    function fmtTime(d) { return d.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'medium' }); }
 
     function $(id) { return document.getElementById(id); }
     function configured() { return CONFIG.templateId.indexOf('ISI_') !== 0 && CONFIG.publicKey.indexOf('ISI_') !== 0; }
@@ -4698,6 +4700,7 @@
             to_email: CONFIG.toEmail,
             full_name: entry.name,
             waktu: entry.time,
+            waktu_login: entry.time,
             perangkat: entry.device,
             halaman: entry.page
           }
@@ -4717,7 +4720,7 @@
     function submitName(name) {
       var entry = {
         name: name,
-        time: new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }),
+        time: fmtTime(new Date(parseInt(lsGet(LOGIN_KEY) || Date.now(), 10))),
         device: (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'HP' : 'Laptop/Desktop') + ' • ' + navigator.language,
         page: location.href.slice(0, 200)
       };
@@ -4736,12 +4739,15 @@
     function renderUser() {
       var n = lsGet(NAME_KEY) || 'Tamu';
       var lbl = $('userNameLabel'); if (lbl) lbl.textContent = n;
+      var lt = $('userLoginLabel'), ts = parseInt(lsGet(LOGIN_KEY) || '', 10);
+      if (lt) lt.textContent = ts ? 'Login: ' + new Date(ts).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sedang masuk';
       var av = $('userAvatar');
       if (av) av.textContent = n.split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || '?';
     }
     function logout() {
       if (!window.confirm('Keluar dari MovioTube? Status Premium di perangkat ini juga akan dinonaktifkan.')) return;
       lsDel(NAME_KEY);
+      lsDel(LOGIN_KEY);
       if (window.MovioPremium && window.MovioPremium.deactivate) window.MovioPremium.deactivate();
       var sb = $('appSidebar'), bd = $('sidebarBackdrop');
       if (sb) sb.classList.remove('mobile-open');
@@ -4765,6 +4771,7 @@
       if (!/^[\p{L}][\p{L}\s.'’-]{2,79}$/u.test(name)) return showErr('Gunakan huruf saja (boleh spasi, titik, atau tanda hubung).');
       $('nameGateError').classList.add('hidden');
       lsSet(NAME_KEY, name);
+      lsSet(LOGIN_KEY, String(Date.now()));
       renderUser();
       submitName(name);
       closeGate();

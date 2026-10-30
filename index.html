@@ -1656,6 +1656,14 @@
           </div>
         </div>
 
+        <div class="d-flex align-items-center justify-content-between gap-2 p-3 rounded-3 bg-neutral-100 dark:bg-[#0e1016] text-xs text-neutral-700 dark:text-[#d1d5db]">
+          <div class="min-w-0">
+            <div class="fw-medium">Cache Data</div>
+            <div id="cacheStatText" class="text-neutral-500 dark:text-[#9ca3af]">Menghitung...</div>
+          </div>
+          <button id="clearCacheBtn" type="button" class="px-3 py-1.5 rounded-pill text-xs fw-medium bg-neutral-200 dark:bg-[#222632] hover:bg-rose-500/20 text-neutral-800 dark:text-[#f1f1f1] border-0 shrink-0 text-nowrap">Bersihkan Cache</button>
+        </div>
+
         <div class="d-flex align-items-center justify-content-between gap-2 pt-2">
           <button
             id="restoreDefaultKeyBtn"
@@ -1684,6 +1692,130 @@
 
   <!-- Bootstrap 5.3.3 Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+  /* ===== MOVIOTUBE CACHE SYSTEM =====
+     - Semua request GET ke YouTube Data API v3 dicache (memori + localStorage)
+     - Cache segar -> langsung dipakai tanpa memanggil API (hemat kuota)
+     - API gagal / kuota habis -> otomatis pakai cache lama (maks 7 hari)
+     - Request kembar yang sedang berjalan digabung jadi satu */
+  (function () {
+    var PREFIX = 'movio_cache_v1:';
+    var STALE_MAX = 7 * 24 * 3600 * 1000;
+    var MAX_BYTES = 3.5 * 1024 * 1024;
+    var nativeFetch = window.fetch.bind(window);
+    var mem = new Map();
+    var inflight = new Map();
+    var lastSource = 'jaringan';
+
+    function ttl(url) {
+      if (/\/commentThreads/.test(url)) return 10 * 60e3;
+      if (/\/channels/.test(url)) return 60 * 60e3;
+      if (/\/videos\?/.test(url) && /[?&]id=/.test(url)) return 60 * 60e3;
+      return 15 * 60e3;
+    }
+    function keyOf(u) {
+      var x = new URL(u);
+      x.searchParams.delete('key');
+      x.searchParams.sort();
+      return PREFIX + x.pathname + '?' + x.searchParams.toString();
+    }
+    function read(k) {
+      if (mem.has(k)) return mem.get(k);
+      try {
+        var raw = localStorage.getItem(k);
+        if (raw) { var e = JSON.parse(raw); mem.set(k, e); return e; }
+      } catch (err) {}
+      return null;
+    }
+    function listKeys() {
+      var out = [];
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf(PREFIX) === 0) out.push(k);
+        }
+      } catch (err) {}
+      return out;
+    }
+    function prune() {
+      var items = listKeys().map(function (k) {
+        var t = 0; try { t = JSON.parse(localStorage.getItem(k)).t || 0; } catch (e) {}
+        return { k: k, t: t };
+      }).sort(function (a, b) { return a.t - b.t; });
+      items.slice(0, Math.ceil(items.length / 2)).forEach(function (i) {
+        try { localStorage.removeItem(i.k); } catch (e) {} mem.delete(i.k);
+      });
+    }
+    function write(k, entry) {
+      mem.set(k, entry);
+      var txt = JSON.stringify(entry);
+      if (txt.length * 2 > MAX_BYTES) return;
+      try { localStorage.setItem(k, txt); }
+      catch (err) {
+        prune();
+        try { localStorage.setItem(k, txt); } catch (e2) {}
+      }
+    }
+    function mk(text, tag) {
+      lastSource = tag;
+      return new Response(text, { status: 200, headers: { 'Content-Type': 'application/json', 'X-Movio-Cache': tag } });
+    }
+
+    window.fetch = function (input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      var method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+      if (method !== 'GET' || url.indexOf('https://www.googleapis.com/youtube/v3/') !== 0) {
+        return nativeFetch(input, init);
+      }
+      var k;
+      try { k = keyOf(url); } catch (e) { return nativeFetch(input, init); }
+
+      var entry = read(k);
+      var age = entry ? Date.now() - entry.t : Infinity;
+      if (entry && age < ttl(url)) return Promise.resolve(mk(entry.d, 'cache'));
+
+      if (inflight.has(k)) return inflight.get(k).then(function (r) { return r.clone(); });
+
+      var p = nativeFetch(input, init).then(function (res) {
+        if (res.ok) {
+          return res.clone().text().then(function (text) {
+            try { if (!JSON.parse(text).error) write(k, { t: Date.now(), d: text }); } catch (e) {}
+            lastSource = 'jaringan';
+            return res;
+          });
+        }
+        if (entry && age < STALE_MAX) return mk(entry.d, 'cache-lama');
+        return res;
+      }).catch(function (err) {
+        if (entry && age < STALE_MAX) return mk(entry.d, 'cache-lama');
+        throw err;
+      }).then(function (r) {
+        inflight.delete(k);
+        return r;
+      }, function (err) {
+        inflight.delete(k);
+        throw err;
+      });
+
+      inflight.set(k, p);
+      return p.then(function (r) { return r.clone(); });
+    };
+
+    window.MovioCache = {
+      stats: function () {
+        var keys = listKeys(), bytes = 0;
+        keys.forEach(function (k) { try { bytes += (localStorage.getItem(k) || '').length * 2; } catch (e) {} });
+        return { items: keys.length, kb: Math.round(bytes / 1024), last: lastSource };
+      },
+      clear: function () {
+        listKeys().forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        mem.clear();
+      }
+    };
+  })();
+  </script>
+
 
   <!-- MOVIOTUBE APPLICATION ENGINE -->
   <script>
@@ -4313,6 +4445,25 @@
         if (bd) bd.classList.add('hidden');
       }
     });
+  })();
+  </script>
+
+  <script>
+  (function () {
+    function label() {
+      var st = window.MovioCache ? window.MovioCache.stats() : { items: 0, kb: 0, last: '-' };
+      var t = document.getElementById('cacheStatText');
+      if (t) t.textContent = st.items + ' item tersimpan (' + st.kb + ' KB) • data terakhir dari: ' + st.last;
+    }
+    var open = document.getElementById('apiModalBtn');
+    if (open) open.addEventListener('click', function () { setTimeout(label, 0); });
+    var btn = document.getElementById('clearCacheBtn');
+    if (btn) btn.addEventListener('click', function () {
+      window.MovioCache.clear(); label();
+      btn.textContent = 'Cache dibersihkan ✓';
+      setTimeout(function () { btn.textContent = 'Bersihkan Cache'; }, 1800);
+    });
+    label();
   })();
   </script>
 </body>

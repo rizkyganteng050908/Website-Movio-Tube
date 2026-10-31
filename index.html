@@ -784,14 +784,6 @@
     .prem-shake { animation: premShake .38s ease; }
     @media (max-width: 639.98px) { #premiumBtn { width: 36px; padding: 0; justify-content: center; } #premiumBtnText { display: none; } }
 
-    /* GERBANG NAMA */
-    #nameGate { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem;
-      background: radial-gradient(circle at 20% 15%, rgba(225,29,72,.28), transparent 55%), radial-gradient(circle at 85% 85%, rgba(245,158,11,.18), transparent 50%), var(--movio-bg); overflow-y: auto; }
-    #nameGateCard { width: 100%; max-width: 420px; background: var(--movio-surface); border: 1px solid var(--movio-border); border-radius: 1.25rem; padding: 1.75rem 1.5rem; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
-    #nameGateInput { width: 100%; height: 46px; border-radius: .85rem; border: 1px solid var(--movio-border); background: var(--movio-bg); color: var(--movio-text); padding: 0 1rem; font-size: 16px; outline: none; }
-    #nameGateInput:focus { border-color: var(--movio-accent); box-shadow: 0 0 0 3px rgba(225,29,72,.2); }
-    #nameGateBtn { width: 100%; height: 46px; border: 0; border-radius: 9999px; background: var(--movio-accent); color: #fff; font-weight: 700; font-size: .95rem; margin-top: .9rem; }
-    #nameGateBtn:disabled { opacity: .6; }
   </style>
 </head>
 <body class="selection:bg-rose-600 selection:text-white">
@@ -842,7 +834,6 @@
           </select>
         </div>
 
-        <button id="logoutHeaderBtn" type="button" title="Keluar" aria-label="Keluar" class="movio-icon-circle-btn d-none d-sm-inline-flex" style="color:#f43f5e;"><i class="bi bi-box-arrow-right fs-5"></i></button>
 
         <button id="premiumBtn" type="button" title="Upgrade ke MovioTube Premium" class="movio-nav-pill-btn shrink-0" style="border-color: rgba(245,158,11,.45); color:#f59e0b;">
           <i class="bi bi-gem"></i>
@@ -1009,16 +1000,6 @@
         </div>
 
         <div class="px-3 pt-4 pb-2 text-[11px] text-neutral-400 dark:text-[#6b7280] space-y-1 sidebar-footer">
-          <div id="userCard" class="d-flex align-items-center gap-2 p-2 mb-2 rounded-3" style="background: var(--movio-chip); border: 1px solid var(--movio-border);">
-            <span id="userAvatar" class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shrink-0" style="width:34px;height:34px;background:#e11d48;font-size:.8rem;">?</span>
-            <div class="min-w-0 flex-grow-1">
-              <div id="userNameLabel" class="text-truncate fw-semibold text-sm" style="color: var(--movio-text);">Tamu</div>
-              <div id="userLoginLabel" class="text-[10px] text-truncate" style="color: var(--movio-muted);">Sedang masuk</div>
-            </div>
-            <button id="logoutBtn" type="button" title="Keluar" aria-label="Keluar" class="btn btn-sm border-0 d-flex align-items-center gap-1 px-2 py-1 rounded-pill text-xs fw-semibold" style="background: rgba(225,29,72,.15); color:#f43f5e;">
-              <i class="bi bi-box-arrow-right"></i><span>Keluar</span>
-            </button>
-          </div>
           <div class="d-flex align-items-center gap-1.5 fw-semibold text-neutral-600 dark:text-[#9ca3af]">
             <i class="bi bi-shield-fill-check text-emerald-500"></i>
             <span>MovioTube Pro Ad-Free</span>
@@ -1716,25 +1697,6 @@
   </div>
 
 
-
-  <!-- GERBANG NAMA LENGKAP -->
-  <div id="nameGate" role="dialog" aria-modal="true" aria-labelledby="nameGateTitle">
-    <div id="nameGateCard">
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <div class="w-8 h-7 rounded-3 bg-[#e11d48] d-flex align-items-center justify-content-center"><i class="bi bi-play-fill text-white fs-5"></i></div>
-        <span class="fw-bold fs-5" style="letter-spacing:-.03em;">MovioTube</span>
-      </div>
-      <h1 id="nameGateTitle" class="fs-5 fw-bold mb-1">Selamat datang 👋</h1>
-      <p class="text-sm mb-3" style="color: var(--movio-muted);">Masukkan nama lengkap kamu untuk mulai menonton.</p>
-      <form id="nameGateForm" autocomplete="off" novalidate>
-        <label for="nameGateInput" class="text-xs fw-bold text-uppercase" style="color: var(--movio-muted); letter-spacing:.06em;">Nama Lengkap</label>
-        <input id="nameGateInput" type="text" name="fullname" autocomplete="name" placeholder="Contoh: Rizky Pratama" maxlength="80" class="mt-1" />
-        <p id="nameGateError" class="hidden text-xs fw-medium mt-2 mb-0 text-rose-500"></p>
-        <button id="nameGateBtn" type="submit">Masuk ke MovioTube</button>
-      </form>
-      <p class="text-xs mt-3 mb-0" style="color: var(--movio-muted);"><i class="bi bi-info-circle me-1"></i>Dengan melanjutkan, nama lengkap kamu akan dikirim ke admin MovioTube.</p>
-    </div>
-  </div>
 
   <!-- PREMIUM MODAL -->
   <div id="premiumModalBackdrop" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm d-flex align-items-center justify-content-center p-4" style="z-index: 1065;">
@@ -4665,120 +4627,5 @@
   })();
   </script>
 
-  <script>
-  /* ===== GERBANG NAMA LENGKAP + KIRIM KE EMAIL (EmailJS) =====
-     Isi templateId & publicKey dari dashboard https://dashboard.emailjs.com
-     Variabel template email: {{full_name}}, {{waktu}}, {{perangkat}}, {{halaman}} */
-  (function () {
-    var CONFIG = {
-      serviceId:  'service_liaztnk',
-      templateId: 'template_k0q3kn9',
-      publicKey:  'ISI_PUBLIC_KEY',    // <-- ganti, dari Account > General > Public Key
-      toEmail:    'rizkyganteng050981@gmail.com'
-    };
-    var NAME_KEY = 'movio_user_name_v1';
-    var QUEUE_KEY = 'movio_name_queue_v1';
-    var LOGIN_KEY = 'movio_login_time_v1';
-    function fmtTime(d) { return d.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'medium' }); }
-
-    function $(id) { return document.getElementById(id); }
-    function configured() { return CONFIG.templateId.indexOf('ISI_') !== 0 && CONFIG.publicKey.indexOf('ISI_') !== 0; }
-    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
-
-    function send(entry) {
-      if (!configured()) return Promise.reject(new Error('EmailJS belum dikonfigurasi'));
-      return fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: CONFIG.serviceId,
-          template_id: CONFIG.templateId,
-          user_id: CONFIG.publicKey,
-          template_params: {
-            to_email: CONFIG.toEmail,
-            full_name: entry.name,
-            waktu: entry.time,
-            waktu_login: entry.time,
-            perangkat: entry.device,
-            halaman: entry.page
-          }
-        })
-      }).then(function (r) { if (!r.ok) throw new Error('Gagal kirim: ' + r.status); });
-    }
-    function readQueue() { try { return JSON.parse(lsGet(QUEUE_KEY) || '[]'); } catch (e) { return []; } }
-    function flushQueue() {
-      var q = readQueue();
-      if (!q.length || !configured()) return;
-      var next = q[0];
-      send(next).then(function () {
-        var cur = readQueue(); cur.shift(); cur.length ? lsSet(QUEUE_KEY, JSON.stringify(cur)) : lsDel(QUEUE_KEY);
-        flushQueue();
-      }).catch(function () {});
-    }
-    function submitName(name) {
-      var entry = {
-        name: name,
-        time: fmtTime(new Date(parseInt(lsGet(LOGIN_KEY) || Date.now(), 10))),
-        device: (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'HP' : 'Laptop/Desktop') + ' • ' + navigator.language,
-        page: location.href.slice(0, 200)
-      };
-      // simpan ke antrean dulu; terhapus otomatis kalau terkirim, dicoba lagi bila gagal
-      var q = readQueue(); q.push(entry); lsSet(QUEUE_KEY, JSON.stringify(q));
-      flushQueue();
-    }
-
-    function openGate() {
-      $('nameGate').classList.remove('hidden');
-      setTimeout(function () { try { $('nameGateInput').focus(); } catch (e) {} }, 80);
-    }
-    function closeGate() { $('nameGate').classList.add('hidden'); }
-    function showErr(m) { var e = $('nameGateError'); e.textContent = m; e.classList.remove('hidden'); }
-
-    function renderUser() {
-      var n = lsGet(NAME_KEY) || 'Tamu';
-      var lbl = $('userNameLabel'); if (lbl) lbl.textContent = n;
-      var lt = $('userLoginLabel'), ts = parseInt(lsGet(LOGIN_KEY) || '', 10);
-      if (lt) lt.textContent = ts ? 'Login: ' + new Date(ts).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sedang masuk';
-      var av = $('userAvatar');
-      if (av) av.textContent = n.split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || '?';
-    }
-    function logout() {
-      if (!window.confirm('Keluar dari MovioTube? Status Premium di perangkat ini juga akan dinonaktifkan.')) return;
-      lsDel(NAME_KEY);
-      lsDel(LOGIN_KEY);
-      if (window.MovioPremium && window.MovioPremium.deactivate) window.MovioPremium.deactivate();
-      var sb = $('appSidebar'), bd = $('sidebarBackdrop');
-      if (sb) sb.classList.remove('mobile-open');
-      if (bd) bd.classList.add('hidden');
-      $('nameGateInput').value = '';
-      $('nameGateError').classList.add('hidden');
-      renderUser();
-      openGate();
-    }
-    $('logoutBtn').addEventListener('click', logout);
-    $('logoutHeaderBtn').addEventListener('click', logout);
-
-    var saved = lsGet(NAME_KEY);
-    renderUser();
-    if (saved) { closeGate(); flushQueue(); } else { openGate(); }
-
-    $('nameGateForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var name = $('nameGateInput').value.replace(/\s+/g, ' ').trim();
-      if (name.length < 3) return showErr('Nama lengkap minimal 3 karakter.');
-      if (!/^[\p{L}][\p{L}\s.'’-]{2,79}$/u.test(name)) return showErr('Gunakan huruf saja (boleh spasi, titik, atau tanda hubung).');
-      $('nameGateError').classList.add('hidden');
-      lsSet(NAME_KEY, name);
-      lsSet(LOGIN_KEY, String(Date.now()));
-      renderUser();
-      submitName(name);
-      closeGate();
-    });
-
-    window.MovioUser = { name: function () { return lsGet(NAME_KEY); }, logout: logout };
-  })();
-  </script>
 </body>
 </html>
